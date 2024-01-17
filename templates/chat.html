@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Chat</title>
+</head>
+
+<body>
+    <h2>Your ID: <span id="ws-id">{{user_id}}</span></h2>
+    <h2>target ID: <span id="target-ws-id">{{target_user_id}}</span></h2>
+    <form action="" onsubmit="sendMessage(event)">
+        <input type="text" id="messageText" autocomplete="off" />
+        <button>Send</button>
+    </form>
+    <ul id='messages'>
+    </ul>
+    <script>
+        var client_id = document.querySelector("#ws-id").textContent
+        var targetClientID = document.querySelector("#target-ws-id").textContent
+        var ws = new WebSocket(`ws://localhost:8000/ws/${client_id}/${targetClientID}`);
+
+        ws.onmessage = function (event) {
+            var messages = document.getElementById('messages')
+            var message = document.createElement('li')
+            var content = document.createTextNode(event.data)
+            message.appendChild(content)
+            messages.appendChild(message)
+        };
+        function sendMessage(event) {
+            var input = document.getElementById("messageText")
+            ws.send(input.value)
+            input.value = ''
+            event.preventDefault()
+        }
+    </script>
+</body>
+
+</html>
