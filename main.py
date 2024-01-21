@@ -1,9 +1,12 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.templating import Jinja2Templates
 
+from routers import users
+
 
 app = FastAPI()
 
+app.include_router(users.router)
 templates = Jinja2Templates(directory="templates")
 
 
