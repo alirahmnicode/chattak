@@ -17,7 +17,7 @@ class User(Base):
 
     messages = relationship("Message", back_populates="owner")
     chat_rooms = relationship("Chat", back_populates="owner")
-    contacts = relationship("Contact", back_populates="user")
+    contacts = relationship("Contact", back_populates="owner")
 
 
 class Contact(Base):

@@ -2,14 +2,14 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.templating import Jinja2Templates
 
 from routers import users
-
-
+from dbmanagement import models
+from dbmanagement.database import SessionLocal, engine
 app = FastAPI()
 
 app.include_router(users.router)
 templates = Jinja2Templates(directory="templates")
 
-
+models.Base.metadata.create_all(bind=engine)
 users = {5: "reza", 6:"ali"}
 
 
