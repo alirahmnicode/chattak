@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, List
 from typing_extensions import Annotated
 
 from fastapi import APIRouter, Depends, status
@@ -7,8 +7,9 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from dbmanagement import schemas
+from dbmanagement import crud
 from dbmanagement.crud import create_user, get_user_by_username
-from utilities.user_auth import create_access_token, authenticate_user
+from utilities.user_auth import create_access_token, authenticate_user, get_current_user
 from .models import Token
 from dependencies.dependencies import get_db
 
@@ -45,3 +46,24 @@ async def login(
         if is_authenticate:
             access_token = create_access_token(data={"sub": user.username})
             return Token(access_token=access_token, token_type="bearer")
+
+
+@router.get("/contacts/", response_model=List[schemas.Contact])
+async def contacts(
+    current_user: Annotated[schemas.User, Depends(get_current_user)],
+    db: Session = Depends(get_db),
+):
+    user_contacts = crud.get_user_contacts(db=db, user_id=current_user.id)
+    return user_contacts
+
+
+@router.post("/contacts/{contact_id}")
+async def contacts(
+    contact_id: int,
+    current_user: Annotated[schemas.User, Depends(get_current_user)],
+    db: Session = Depends(get_db),
+):
+    new_contact = crud.create_user_contact(
+        db=db, owner_id=current_user.id, contact_id=contact_id
+    )
+    return new_contact
