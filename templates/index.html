@@ -2,15 +2,10 @@
 
 
 {% block content %}
-    
-    {% for id, username in users.items() %}
-        <div class="fs-3">
-            {{id}}, {{username}}, 
-            <div class="badge bg-primary text-wrap">
-                <a href="/pm/{{id}}" class="text-white ">privet message</a>
-              </div>
-        </div>
-    {% endfor %}
-        
+<div>
+    <a href="/register">register</a>
+    <a href="/login">login</a>
+</div>
+<hr>
+<a href="/message">start message</a>
 {% endblock content %}
-    

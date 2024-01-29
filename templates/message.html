@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+hi {{user.username}}
+<div>
+    <div>contacts</div>
+
+    {% for contact in contacts %}
+    <div>{{contact.username}} {{contact.id}} <a href="/pm/{{contact.id}}">message</a></div>
+    {% endfor %}
+
+    add
+</div>
+
+{% endblock content %}
