@@ -1,87 +1,43 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
+from typing import Annotated
+from fastapi import Depends, FastAPI, Request
 from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
+from dbmanagement.schemas import User
 
-from routers import users
-from dbmanagement import models
-from dbmanagement.database import SessionLocal, engine
+from routers import users, chat, auth
+from dbmanagement import models, crud
+from dbmanagement.database import engine
+from utilities.user_auth import get_current_user
+
+from dependencies.dependencies import get_db
+
 app = FastAPI()
 
 app.include_router(users.router)
+app.include_router(chat.router)
+app.include_router(auth.router)
+
 templates = Jinja2Templates(directory="templates")
 
 models.Base.metadata.create_all(bind=engine)
-users = {5: "reza", 6:"ali"}
-
-
-class ConnectionManager:
-    def __init__(self):
-        # self.active_connections: list[WebSocket] = []
-        self.active_connections: dict[int, WebSocket] = {}
-
-    async def connect(self, websocket: WebSocket, user_id: int) -> None:
-        await websocket.accept()
-        print(self.active_connections)
-        self.active_connections[user_id] = websocket
-        print(self.active_connections)
-
-    def is_user_online(self, user_id: int) -> bool:
-        return self.active_connections.get(user_id, False) and True
-
-    def disconnect(self, user_id: int):
-        del self.active_connections[user_id]
-
-    async def send_personal_message(self, message: str, target_user_id: int):
-        websocket = self.active_connections.get(target_user_id)
-        print(websocket)
-        await websocket.send_text(message)
-
-    async def broadcast(self, message: str):
-        for connection in self.active_connections:
-            print(connection)
-            await connection.send_text(message)
 
 
 @app.get("/")
-async def home(request: Request):
-    return templates.TemplateResponse(
-        request=request, name="index.html", context={"users": users}
-    )
-
-
-@app.get("/pm/{target_user_id}")
-async def privet_message(request: Request, target_user_id: int):
+async def home(
+    request: Request,
+):
     return templates.TemplateResponse(
         request=request,
-        name="privet_message.html",
-        context={
-            "target_user": {"id": target_user_id, "username": users[target_user_id]}
-        },
+        name="index.html",
     )
 
-manager = ConnectionManager()
-
-@app.websocket("/ws/{target_user_id}")
-async def privet_message_websocket(websocket: WebSocket, target_user_id: int):
-    """
-    The client send message and the target user recieve the message.
-    """
-    client_id = 5 if target_user_id == 6 else 6
-    
-    await manager.connect(websocket=websocket, user_id=client_id)
-    # check if target user is online or not
-    
-
-    try:
-        while True:
-            data = await websocket.receive_text()
-            is_target_user_is_online = manager.is_user_online(user_id=target_user_id)
-            if is_target_user_is_online:
-                await manager.send_personal_message(
-                    data, target_user_id
-                )
-            else:
-                # save message in db
-                print(data)
-    except WebSocketDisconnect:
-        manager.disconnect(client_id)
-        await manager.broadcast(f"Client #{client_id} left the chat")
+@app.get("/message")
+async def message(request: Request, db: Session = Depends(get_db)):
+    token = request.cookies.get("access_token").split(" ")[1]
+    user = await get_current_user(token=token, db=db)
+    user_contacts = crud.get_user_contacts(db=db, user_id=user.id)
+    return templates.TemplateResponse(
+        request=request,
+        name="message.html",
+        context={"user": user, "contacts": user_contacts},
+    )
