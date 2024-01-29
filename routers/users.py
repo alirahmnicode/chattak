@@ -1,7 +1,7 @@
 from typing import Annotated, List
 from typing_extensions import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 from fastapi.exceptions import HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -50,19 +50,23 @@ async def login(
 
 @router.get("/contacts/", response_model=List[schemas.Contact])
 async def contacts(
-    current_user: Annotated[schemas.User, Depends(get_current_user)],
+    request: Request,
     db: Session = Depends(get_db),
 ):
+    token = request.cookies.get("access_token").split(" ")[1]
+    current_user = await get_current_user(token=token, db=db)
     user_contacts = crud.get_user_contacts(db=db, user_id=current_user.id)
     return user_contacts
 
 
 @router.post("/contacts/{contact_id}")
 async def contacts(
+    request: Request,
     contact_id: int,
-    current_user: Annotated[schemas.User, Depends(get_current_user)],
     db: Session = Depends(get_db),
 ):
+    token = request.cookies.get("access_token").split(" ")[1]
+    current_user = await get_current_user(token=token, db=db)
     new_contact = crud.create_user_contact(
         db=db, owner_id=current_user.id, contact_id=contact_id
     )
