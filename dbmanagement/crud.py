@@ -29,7 +29,7 @@ def get_user_contacts(db: Session, user_id) -> List[schemas.Contact]:
     contact_list = []
 
     for contact in user.contacts:
-        contact_info = get_contact_info(db=db, contact_id=contact.id)
+        contact_info = get_contact_info(db=db, contact_id=contact.target_user_id)
         contact_list.append(contact_info)
     return contact_list
 
@@ -49,3 +49,28 @@ def get_contact_info(db: Session, contact_id) -> schemas.Contact:
         id=user.id, username=user.username, last_online=user.last_online
     )
     return contact
+
+
+def save_message(db: Session, message: schemas.MessageCreate) -> schemas.Message:
+    new_message = models.Message(**message.dict())
+    db.add(new_message)
+    db.commit()
+    db.refresh(new_message)
+    return new_message
+
+
+def create_chat(db: Session, user_id: int, target_user_id: int):
+    chat = (
+        db.query(models.Chat)
+        .filter(
+            models.Chat.owner_id == user_id,
+            models.Chat.target_user_id == target_user_id,
+        )
+        .first()
+    )
+    if chat is None:
+        chat = models.Chat(owner_id=user_id, target_user_id=target_user_id)
+        db.add(chat)
+        db.commit()
+        db.refresh(chat)
+    return chat

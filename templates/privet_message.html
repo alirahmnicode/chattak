@@ -33,9 +33,10 @@
 </section>
 
 <script>
+    var host = window.location.host
     var userId = document.getElementById("user").dataset.userid
     var targetUserId = document.getElementById("user").dataset.targetuserid
-    var ws = new WebSocket(`ws://localhost:8000/ws/${userId}/${targetUserId}`);
+    var ws = new WebSocket(`ws://${host}/ws/${userId}/${targetUserId}`);
 
     ws.onmessage = function (event) {
         console.log(event.data)
@@ -55,7 +56,13 @@
     function sendMessage(event) {
         var input = document.getElementById("messageText")
         var cardBody = document.getElementsByClassName("card-body")[0]
-
+        // var json_value = JSON.stringify(
+        //     {
+        //         message: input.value,
+        //         is_online: true
+        //     }
+        // )
+        // ws.send(json_value)
         ws.send(input.value)
         let selfMessage = `<div class="d-flex flex-row justify-content-end mb-4">
             <div class="p-3 me-3 border" style="max-width: 369px; border-radius: 15px; background-color: #fbfbfb;">

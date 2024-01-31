@@ -19,3 +19,14 @@ class Contact(BaseModel):
     id: int
     username: str
     last_online: Any
+
+
+class Message(BaseModel):
+    text: str
+    is_seen: bool
+    date_send: Any
+
+
+class MessageCreate(Message):
+    owner_id: int
+    chat_id: int

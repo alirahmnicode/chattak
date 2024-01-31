@@ -36,7 +36,7 @@ class Message(Base):
     id = Column(Integer, primary_key=True)
     text = Column(String)
     is_seen = Column(Boolean, default=False)
-    join_send = Column(DateTime(timezone=True), server_default=func.now())
+    date_send = Column(DateTime(timezone=True), server_default=func.now())
     owner_id = Column(Integer, ForeignKey("users.id"))
     chat_id = Column(Integer, ForeignKey("chats.id"))
 
@@ -49,6 +49,7 @@ class Chat(Base):
 
     id = Column(Integer, primary_key=True)
     owner_id = Column(Integer, ForeignKey("users.id"))
+    target_user_id = Column(Integer)
 
     messages = relationship("Message", back_populates="chat")
     owner = relationship("User", back_populates="chat_rooms")
