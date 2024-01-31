@@ -44,7 +44,7 @@ def verify_password(plain_password, hashed_password) -> bool:
 
 
 async def get_current_user(
-    token: str, db: Session = Depends(get_db)
+    token: Annotated[str, Depends(oauth2_scheme)], db: Session = Depends(get_db)
 ):
     credentials_exception = HTTPException(
         status_code=status,
