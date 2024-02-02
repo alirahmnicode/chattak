@@ -13,7 +13,8 @@
                     <div class="card-header d-flex justify-content-between align-items-center p-3 bg-info text-white border-bottom-0"
                         style="border-top-left-radius: 15px; border-top-right-radius: 15px;">
                         <i class="fas fa-angle-left"></i>
-                        <p class="mb-0 fw-bold" id="user" data-userID="{{user.id}}" data-targetUserid="{{target_user.id}}">{{target_user.username}}</p>
+                        <p class="mb-0 fw-bold" id="user" data-userID="{{user.id}}"
+                            data-targetUserid="{{target_user.id}}">{{target_user.username}}</p>
                         <i class="fas fa-times"></i>
                     </div>
                     <div class="card-body">
@@ -34,9 +35,16 @@
 
 <script>
     var host = window.location.host
+    var protocol = window.location.protocol
     var userId = document.getElementById("user").dataset.userid
     var targetUserId = document.getElementById("user").dataset.targetuserid
-    var ws = new WebSocket(`ws://${host}/ws/${userId}/${targetUserId}`);
+    var webSocketProtocol = "wss"
+
+    if (protocol == "http:") {
+        var webSocketProtocol = "ws"
+    }
+
+    var ws = new WebSocket(`${webSocketProtocol}://${host}/ws/${userId}/${targetUserId}`);
 
     ws.onmessage = function (event) {
         console.log(event.data)
