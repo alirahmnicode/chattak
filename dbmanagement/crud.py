@@ -1,5 +1,6 @@
 from typing import List
 from sqlalchemy.orm import Session
+from fastapi.exceptions import RequestValidationError
 
 from . import models, schemas
 from utilities.user_auth import get_password_hash
@@ -35,12 +36,20 @@ def get_user_contacts(db: Session, user_id) -> List[schemas.Contact]:
 
 
 def create_user_contact(db: Session, owner_id, contact_id) -> schemas.Contact:
-    new_contact = models.Contact(target_user_id=contact_id, owner_id=owner_id)
-    db.add(new_contact)
-    db.commit()
-    db.refresh(new_contact)
-    contact = get_contact_info(db=db, contact_id=new_contact.id)
-    return contact
+    # check if the target user is not exist in user contacts
+    user_contact = db.query(models.Contact).filter(
+        models.Contact.owner_id == owner_id, models.Contact.target_user_id == contact_id
+    ).first()
+
+    if user_contact is None:
+        new_contact = models.Contact(target_user_id=contact_id, owner_id=owner_id)
+        db.add(new_contact)
+        db.commit()
+        db.refresh(new_contact)
+        contact = get_contact_info(db=db, contact_id=new_contact.id)
+        return contact
+    else:
+        raise RequestValidationError("The contact is already exist!")
 
 
 def get_contact_info(db: Session, contact_id) -> schemas.Contact:

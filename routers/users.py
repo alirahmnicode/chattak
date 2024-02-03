@@ -68,7 +68,7 @@ async def contacts(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     contact_id: int,
     db: Session = Depends(get_db),
-):
+):  
     new_contact = crud.create_user_contact(
         db=db, owner_id=current_user.id, contact_id=contact_id
     )
