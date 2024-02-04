@@ -37,9 +37,14 @@ def get_user_contacts(db: Session, user_id) -> List[schemas.Contact]:
 
 def create_user_contact(db: Session, owner_id, contact_id) -> schemas.Contact:
     # check if the target user is not exist in user contacts
-    user_contact = db.query(models.Contact).filter(
-        models.Contact.owner_id == owner_id, models.Contact.target_user_id == contact_id
-    ).first()
+    user_contact = (
+        db.query(models.Contact)
+        .filter(
+            models.Contact.owner_id == owner_id,
+            models.Contact.target_user_id == contact_id,
+        )
+        .first()
+    )
 
     if user_contact is None:
         new_contact = models.Contact(target_user_id=contact_id, owner_id=owner_id)
@@ -83,3 +88,17 @@ def create_chat(db: Session, user_id: int, target_user_id: int):
         db.commit()
         db.refresh(chat)
     return chat
+
+
+def get_user_chats(db: Session, user_id: int) -> List[schemas.UserChat]:
+    chats = db.query(models.Chat).filter_by(owner_id=user_id).all()
+    chat_list = []
+    
+    for chat in chats:
+        target_user = get_user_by_id(db=db, user_id=chat.target_user_id)
+        user_chat = schemas.UserChat(
+            user_id=target_user.id, username=target_user.username
+        )
+        chat_list.append(user_chat)
+
+    return chat_list

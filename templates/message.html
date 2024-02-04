@@ -3,6 +3,20 @@
 
 {% block content %}
 hi {{user.username}}
+<hr>
+<div>
+    <p>your chats:</p>
+    <div>
+
+        {% for chat in chats %}
+        <div>
+            <div>{{chat.username}} {{chat.user_id}} <a href="/pm/{{chat.user_id}}">message</a></div>
+        </div>
+        {% endfor %}
+
+    </div>
+</div>
+<hr>
 <div>
     <div>contacts</div>
 
