@@ -65,7 +65,7 @@ def get_contact_info(db: Session, contact_id) -> schemas.Contact:
     return contact
 
 
-def save_message(db: Session, message: schemas.MessageCreate) -> schemas.Message:
+def save_message(db: Session, message: schemas.Message) -> schemas.Message:
     new_message = models.Message(**message.dict())
     db.add(new_message)
     db.commit()

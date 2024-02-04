@@ -21,13 +21,13 @@ class Contact(BaseModel):
     last_online: Any
 
 
-class Message(BaseModel):
+class MessageBase(BaseModel):
     text: str
     is_seen: bool
     date_send: Any
 
 
-class MessageCreate(Message):
+class Message(MessageBase):
     owner_id: int
     chat_id: int
 
