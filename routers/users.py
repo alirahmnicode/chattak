@@ -1,5 +1,4 @@
 from typing import Annotated, List
-from typing_extensions import Annotated
 
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
@@ -9,6 +8,7 @@ from sqlalchemy.orm import Session
 from dbmanagement import schemas
 from dbmanagement import crud
 from dbmanagement.crud import create_user, get_user_by_username
+from utilities.forms import UserCreateForm
 from utilities.user_auth import create_access_token, authenticate_user, get_current_user
 from .models import Token
 from dependencies.dependencies import get_db
@@ -19,9 +19,12 @@ router = APIRouter()
 
 @router.post("/signup/")
 async def user_register(
-    user: schemas.UserCreate,
+    form_data: Annotated[UserCreateForm, Depends()],
     db: Session = Depends(get_db),
 ) -> Token:
+    user = schemas.UserCreate(
+        username=form_data.username, email=form_data.email, password=form_data.password
+    )
     new_user = create_user(db=db, user=user)
     access_token = create_access_token(data={"sub": new_user.username})
     return Token(access_token=access_token, token_type="bearer")
@@ -68,7 +71,7 @@ async def contacts(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     contact_id: int,
     db: Session = Depends(get_db),
-):  
+):
     new_contact = crud.create_user_contact(
         db=db, owner_id=current_user.id, contact_id=contact_id
     )
