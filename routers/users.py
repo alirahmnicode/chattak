@@ -5,7 +5,7 @@ from fastapi.exceptions import HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from dbmanagement import schemas
+from dbmanagement import models, schemas
 from dbmanagement import crud
 from dbmanagement.crud import create_user, get_user_by_username
 from utilities.forms import UserCreateForm
@@ -19,24 +19,32 @@ router = APIRouter()
 
 @router.post("/signup/")
 async def user_register(
-    form_data: Annotated[UserCreateForm, Depends()],
+    user: schemas.UserCreate,
     db: Session = Depends(get_db),
 ) -> Token:
-    user = schemas.UserCreate(
-        username=form_data.username, email=form_data.email, password=form_data.password
-    )
-    new_user = create_user(db=db, user=user)
-    access_token = create_access_token(data={"sub": new_user.username})
-    return Token(access_token=access_token, token_type="bearer")
+    orm_m = crud.CRUDManagement(db=db, model=models.User)
+    db_user = orm_m.get_object(username=user.username)
+
+    if db_user is None:
+        new_user = create_user(db=db, user=user)
+        access_token = create_access_token(data={"sub": new_user.username})
+        return Token(access_token=access_token, token_type="bearer")
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A user with this username is already exist!",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 
 @router.post("/login/")
 async def login(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    user: schemas.UserCreate,
     db: Session = Depends(get_db),
 ) -> Token:
-    user = get_user_by_username(db=db, username=form_data.username)
-    if not user:
+    orm_m = crud.CRUDManagement(db=db, model=models.User)
+    db_user = orm_m.get_object(username=user.username)
+    if not db_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -44,7 +52,7 @@ async def login(
         )
     else:
         is_authenticate = authenticate_user(
-            user_in_db=user, password=form_data.password
+            user_in_db=db_user, password=user.password
         )
         if is_authenticate:
             access_token = create_access_token(data={"sub": user.username})

@@ -9,7 +9,7 @@ from utilities.user_auth import get_password_hash
 def create_user(db: Session, user: schemas.UserCreate):
     hashed_password = get_password_hash(user.password)
     new_user = models.User(
-        username=user.username, email=user.email, password=hashed_password
+        username=user.username, password=hashed_password
     )
     db.add(new_user)
     db.commit()
@@ -106,3 +106,21 @@ def get_user_chats(db: Session, user_id: int) -> List[schemas.UserChat]:
 
 def get_chat_by_id(db: Session, chat_id: int):
     return db.query(models.Chat).filter_by(id=chat_id).first()
+
+
+class CRUDManagement:
+    def __init__(self, db: Session, model) -> None:
+        self.db = db
+        self.model = model
+
+    def get_object(self, **kwargs):
+        """kwargs must be model attributes."""
+        return self.db.query(self.model).filter_by(**kwargs).first()
+    
+    def get_objects(self, **kwargs):
+        """kwargs must be model attributes."""
+        return self.db.query(self.model).filter_by(**kwargs)
+    
+
+def get_crud_management(db: Session, model):
+    return CRUDManagement(db=db, model=model)

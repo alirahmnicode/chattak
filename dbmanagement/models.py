@@ -10,7 +10,6 @@ class User(Base):
 
     id = Column(Integer, primary_key=True)
     username = Column(String, index=True, unique=True)
-    email = Column(String, unique=True)
     password = Column(String)
     last_online = Column(DateTime, nullable=True)
     join_date = Column(DateTime(timezone=True), server_default=func.now())

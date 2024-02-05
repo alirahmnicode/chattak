@@ -19,16 +19,6 @@ class UserCreateForm:
                 """
             ),
         ],
-        email: Annotated[
-            str,
-            Form(),
-            Doc(
-                """
-                `password` string. The OAuth2 spec requires the exact field name
-                `password".
-                """
-            ),
-        ],
         password: Annotated[
             str,
             Form(),
@@ -41,5 +31,4 @@ class UserCreateForm:
         ],
     ):
         self.username = username
-        self.email = email
         self.password = password

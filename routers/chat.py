@@ -6,7 +6,8 @@ from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, Request
 from fastapi.templating import Jinja2Templates
 
 from .connection_manager import ConnectionManager
-from dbmanagement import crud, schemas
+from dbmanagement import crud, models, schemas
+from dbmanagement.crud import CRUDManagement    
 from dependencies.dependencies import get_db
 from utilities.user_auth import get_current_user
 
@@ -20,7 +21,8 @@ templates = Jinja2Templates(directory="templates")
 async def privet_message(request: Request, target_user_id: int, db=Depends(get_db)):
     token = request.cookies.get("access_token").split(" ")[1]
     user = await get_current_user(token=token, db=db)
-    target_user = crud.get_user_by_id(db=db, user_id=target_user_id)
+    crud_m = CRUDManagement(db=db, model=models.User)
+    target_user = crud_m.get_object(id=target_user_id)
 
     return templates.TemplateResponse(
         request=request,
@@ -37,8 +39,10 @@ async def get_chat_messages(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     chat_id: int,
     db=Depends(get_db),
+    
 ):
-    chat = crud.get_chat_by_id(db=db, chat_id=chat_id)
+    crud_m = CRUDManagement(db=db, model=models.Chat)
+    chat = crud_m.get_object(id=chat_id)
     return chat.messages
 
 
@@ -63,7 +67,7 @@ async def privet_message_websocket(
             target_user_chat = crud.create_chat(
                 db=db, user_id=target_user_id, target_user_id=current_user_id
             )
-            message = schemas.MessageCreate(
+            message = schemas.Message(
                 text=data,
                 is_seen=False,
                 date_send=datetime.utcnow(),
