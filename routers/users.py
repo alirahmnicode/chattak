@@ -62,12 +62,6 @@ async def contacts(
     return user_contacts
 
 
-@router.get("/me/")
-def me(current_user: Annotated[schemas.User, Depends(get_current_user)]):
-    print(current_user)
-    return
-
-
 @router.post("/contacts/{contact_id}")
 async def contacts(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
@@ -78,3 +72,9 @@ async def contacts(
         db=db, owner_id=current_user.id, contact_id=contact_id
     )
     return new_contact
+
+
+@router.get("/me/")
+def me(current_user: Annotated[schemas.User, Depends(get_current_user)]):
+    print(current_user)
+    return

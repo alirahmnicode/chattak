@@ -8,7 +8,7 @@ from passlib.context import CryptContext
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
-from dbmanagement import crud
+from dbmanagement import crud, models
 from dependencies.dependencies import get_db
 
 
@@ -60,7 +60,7 @@ async def get_current_user(
     except JWTError:
         raise credentials_exception
 
-    user = crud.get_user_by_username(db=db, username=username)
+    user = crud.get_object(db=db, model=models.User, username=username)
 
     if user is None:
         raise credentials_exception
