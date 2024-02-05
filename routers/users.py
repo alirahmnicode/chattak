@@ -62,7 +62,7 @@ async def contacts(
     return user_contacts
 
 
-@router.post("/contacts/{contact_id}")
+@router.post("/contacts/{contact_id}/")
 async def contacts(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     contact_id: int,
@@ -78,3 +78,20 @@ async def contacts(
 def me(current_user: Annotated[schemas.User, Depends(get_current_user)]):
     print(current_user)
     return
+
+
+@router.get("/search/", response_model=List[schemas.User])
+def search_user(
+    current_user: Annotated[schemas.User, Depends(get_current_user)],
+    username: str | None = None,
+    db=Depends(get_db),
+):  
+    if username is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username cannot be none! user query parameter.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    users = crud.search_user(db=db, username=username)
+    return users

@@ -100,3 +100,10 @@ def get_object(db: Session, model, **kwargs):
 def get_objects(db: Session, model, **kwargs):
     """kwargs must be model attributes."""
     return db.query(model).filter_by(**kwargs)
+
+
+def search_user(db: Session, username: str) -> schemas.User:
+    users = db.query(models.User).filter(
+        models.User.username.like("%" + username + "%")
+    )
+    return users

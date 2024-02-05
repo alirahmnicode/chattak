@@ -11,7 +11,8 @@ class UserCreate(UserBase):
 
 
 class User(UserBase):
-    last_online: str
+    id: int
+    last_online: Any
 
 
 class Contact(BaseModel):
