@@ -102,3 +102,7 @@ def get_user_chats(db: Session, user_id: int) -> List[schemas.UserChat]:
         chat_list.append(user_chat)
 
     return chat_list
+
+
+def get_chat_by_id(db: Session, chat_id: int):
+    return db.query(models.Chat).filter_by(id=chat_id).first()

@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+from typing import Annotated, List
 
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, Request
 from fastapi.templating import Jinja2Templates
@@ -31,6 +32,16 @@ async def privet_message(request: Request, target_user_id: int, db=Depends(get_d
     )
 
 
+@router.get("/messages/", response_model=List[schemas.Message])
+async def get_chat_messages(
+    current_user: Annotated[schemas.User, Depends(get_current_user)],
+    chat_id: int,
+    db=Depends(get_db),
+):
+    chat = crud.get_chat_by_id(db=db, chat_id=chat_id)
+    return chat.messages
+
+
 @router.websocket("/ws/{current_user_id}/{target_user_id}")
 async def privet_message_websocket(
     websocket: WebSocket, current_user_id: int, target_user_id: int, db=Depends(get_db)
@@ -45,7 +56,7 @@ async def privet_message_websocket(
     try:
         while True:
             data = await websocket.receive_text()
-            # create chat object for user and target user 
+            # create chat object for user and target user
             user_chat = crud.create_chat(
                 db=db, user_id=current_user_id, target_user_id=target_user_id
             )
@@ -68,7 +79,6 @@ async def privet_message_websocket(
     except WebSocketDisconnect:
         manager.disconnect(user.id)
         await manager.broadcast(f"Client #{user.username} left the chat")
-
 
 
 # @router.websocket("/ws/{current_user_id}/{target_user_id}")
