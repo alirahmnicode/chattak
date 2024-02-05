@@ -7,7 +7,6 @@ from fastapi.templating import Jinja2Templates
 
 from .connection_manager import ConnectionManager
 from dbmanagement import crud, models, schemas
-from dbmanagement.crud import CRUDManagement    
 from dependencies.dependencies import get_db
 from utilities.user_auth import get_current_user
 
@@ -21,8 +20,7 @@ templates = Jinja2Templates(directory="templates")
 async def privet_message(request: Request, target_user_id: int, db=Depends(get_db)):
     token = request.cookies.get("access_token").split(" ")[1]
     user = await get_current_user(token=token, db=db)
-    crud_m = CRUDManagement(db=db, model=models.User)
-    target_user = crud_m.get_object(id=target_user_id)
+    target_user = crud.get_object(db=db, model=models.User, id=target_user_id)
 
     return templates.TemplateResponse(
         request=request,
@@ -39,10 +37,8 @@ async def get_chat_messages(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     chat_id: int,
     db=Depends(get_db),
-    
 ):
-    crud_m = CRUDManagement(db=db, model=models.Chat)
-    chat = crud_m.get_object(id=chat_id)
+    chat = crud.get_object(db=db, model=models.Chat, id=chat_id)
     return chat.messages
 
 
