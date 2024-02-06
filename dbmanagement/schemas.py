@@ -33,6 +33,6 @@ class Message(MessageBase):
 
 
 class UserChat(BaseModel):
-    """id and username is for target user not current user"""
-    user_id: int
-    username: str
+    current_user_id: int
+    target_user_id: int
+    target_username: str

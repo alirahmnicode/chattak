@@ -66,7 +66,7 @@ def create_chat(db: Session, users_id: List[int]):
 
     if chat is None:
         chat = models.Chat()
-        
+
         for user_id in users_id:
             user = get_object(db=db, model=models.User, id=user_id)
             chat.users.append(user)
@@ -78,15 +78,25 @@ def create_chat(db: Session, users_id: List[int]):
 
 
 def get_user_chats(db: Session, user_id: int) -> List[schemas.UserChat]:
-    chats = db.query(models.Chat).filter_by(owner_id=user_id).all()
+    chats = (
+        db.query(models.Chat)
+        .filter(models.Chat.users.any(models.User.id.in_([user_id])))
+        .all()
+    )
     chat_list = []
 
     for chat in chats:
-        target_user = get_object(db=db, model=models.User, id=chat.target_user_id)
-        user_chat = schemas.UserChat(
-            user_id=target_user.id, username=target_user.username
+        # find target user
+        for user in chat.users:
+            if user.id != user_id:
+                target_user_id = user.id
+                target_username = user.username
+        chat_obj = schemas.UserChat(
+            current_user_id=user_id,
+            target_user_id=target_user_id,
+            target_username=target_username,
         )
-        chat_list.append(user_chat)
+        chat_list.append(chat_obj)
 
     return chat_list
 
