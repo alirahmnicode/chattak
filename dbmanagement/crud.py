@@ -57,17 +57,20 @@ def save_message(db: Session, message: schemas.Message) -> schemas.Message:
     return new_message
 
 
-def create_chat(db: Session, user_id: int, target_user_id: int):
+def create_chat(db: Session, users_id: List[int]):
     chat = (
         db.query(models.Chat)
-        .filter(
-            models.Chat.owner_id == user_id,
-            models.Chat.target_user_id == target_user_id,
-        )
+        .filter(models.Chat.users.any(models.User.id.in_(users_id)))
         .first()
     )
+
     if chat is None:
-        chat = models.Chat(owner_id=user_id, target_user_id=target_user_id)
+        chat = models.Chat()
+        
+        for user_id in users_id:
+            user = get_object(db=db, model=models.User, id=user_id)
+            chat.users.append(user)
+
         db.add(chat)
         db.commit()
         db.refresh(chat)

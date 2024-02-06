@@ -49,7 +49,7 @@ async def privet_message_websocket(
     """
     The client send message and the target user recieve the message.
     """
-    user = crud.get_user_by_id(db=db, user_id=current_user_id)
+    user = crud.get_object(db=db, model=models.User, id=current_user_id)
 
     await manager.connect(websocket=websocket, user_id=current_user_id)
 
@@ -57,18 +57,16 @@ async def privet_message_websocket(
         while True:
             data = await websocket.receive_text()
             # create chat object for user and target user
-            user_chat = crud.create_chat(
-                db=db, user_id=current_user_id, target_user_id=target_user_id
+            chat_obj = crud.create_chat(
+                db=db, users_id=[current_user_id, target_user_id]
             )
-            target_user_chat = crud.create_chat(
-                db=db, user_id=target_user_id, target_user_id=current_user_id
-            )
+
             message = schemas.Message(
                 text=data,
                 is_seen=False,
                 date_send=datetime.utcnow(),
-                owner_id=user.id,
-                chat_id=user_chat.id,
+                sender_id=user.id,
+                chat_id=chat_obj.id,
             )
             crud.save_message(db=db, message=message)
 

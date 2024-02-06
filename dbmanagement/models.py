@@ -1,8 +1,19 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime
-from sqlalchemy.orm import relationship
+from __future__ import annotations
+from typing import List
+
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, Table
+from sqlalchemy.orm import relationship, Mapped
 from sqlalchemy.sql import func
 
 from .database import Base
+
+
+chat_users = Table(
+    "chat_users",
+    Base.metadata,
+    Column("user_id", ForeignKey("users.id"), primary_key=True),
+    Column("chat_id", ForeignKey("chats.id"), primary_key=True),
+)
 
 
 class User(Base):
@@ -15,7 +26,9 @@ class User(Base):
     join_date = Column(DateTime(timezone=True), server_default=func.now())
 
     messages = relationship("Message", back_populates="owner")
-    chat_rooms = relationship("Chat", back_populates="owner")
+    chats: Mapped[List[Chat]] = relationship(
+        secondary=chat_users, back_populates="users"
+    )
     contacts = relationship("Contact", back_populates="owner")
 
 
@@ -36,7 +49,7 @@ class Message(Base):
     text = Column(String)
     is_seen = Column(Boolean, default=False)
     date_send = Column(DateTime(timezone=True), server_default=func.now())
-    owner_id = Column(Integer, ForeignKey("users.id"))
+    sender_id = Column(Integer, ForeignKey("users.id"))
     chat_id = Column(Integer, ForeignKey("chats.id"))
 
     owner = relationship("User", back_populates="messages")
@@ -47,8 +60,8 @@ class Chat(Base):
     __tablename__ = "chats"
 
     id = Column(Integer, primary_key=True)
-    owner_id = Column(Integer, ForeignKey("users.id"))
-    target_user_id = Column(Integer)
 
     messages = relationship("Message", back_populates="chat")
-    owner = relationship("User", back_populates="chat_rooms")
+    users: Mapped[List[User]] = relationship(
+        secondary=chat_users, back_populates="chats"
+    )

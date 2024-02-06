@@ -28,7 +28,7 @@ class MessageBase(BaseModel):
 
 
 class Message(MessageBase):
-    owner_id: int
+    sender_id: int
     chat_id: int
 
 
