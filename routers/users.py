@@ -101,3 +101,8 @@ def search_user(
 def user_list(db=Depends(get_db)):
     users = crud.get_all_user(db=db)
     return users
+
+@router.get("/get-by-id/{id}/", response_model=schemas.User)
+def get_user_by_id(id: int,  db=Depends(get_db)):
+    user = crud.get_object(db=db, model=models.User, id=id)
+    return user
