@@ -26,6 +26,11 @@ def get_user_contacts(db: Session, user_id) -> List[schemas.Contact]:
 
 
 def create_user_contact(db: Session, owner_id, contact_id) -> schemas.Contact:
+    target_user = get_object(db=db, model=models.User, id=contact_id)
+
+    if target_user is None:
+        raise RequestValidationError("Cannot find a user with the id!")
+    
     user_contact = get_object(
         db=db, model=models.Contact, owner_id=owner_id, target_user_id=contact_id
     )
