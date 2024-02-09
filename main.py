@@ -11,9 +11,9 @@ from dependencies.dependencies import get_db
 
 app = FastAPI()
 
-app.include_router(users.router, prefix="/users")
-app.include_router(chat.router)
-app.include_router(auth.router, prefix="/auth")
+app.include_router(users.router, prefix="/users", tags=["users"])
+app.include_router(chat.router, tags=["chat"])
+app.include_router(auth.router, prefix="/auth", tags=["test"])
 
 templates = Jinja2Templates(directory="templates")
 
