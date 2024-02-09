@@ -125,3 +125,7 @@ def search_user(db: Session, username: str) -> schemas.User:
         models.User.username.like("%" + username + "%")
     )
     return users
+
+
+def get_all_user(db: Session):
+    return db.query(models.User).all()

@@ -96,3 +96,8 @@ def search_user(
 
     users = crud.search_user(db=db, username=username)
     return users
+
+@router.get("/list/", response_model=List[schemas.User])
+def user_list(db=Depends(get_db)):
+    users = crud.get_all_user(db=db)
+    return users
