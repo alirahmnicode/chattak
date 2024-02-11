@@ -2,7 +2,15 @@ from datetime import datetime
 import json
 from typing import Annotated, List
 
-from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, Request
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    WebSocket,
+    WebSocketDisconnect,
+    Request,
+    status,
+)
 from fastapi.templating import Jinja2Templates
 
 from .connection_manager import ConnectionManager
@@ -14,6 +22,33 @@ from utilities.user_auth import get_current_user
 router = APIRouter()
 manager = ConnectionManager()
 templates = Jinja2Templates(directory="templates")
+
+
+@router.get("/", response_model=List[schemas.ChatRoom])
+def get_user_chats(
+    current_user: Annotated[schemas.User, Depends(get_current_user)], db=Depends(get_db)
+):
+    user_chats = crud.get_user_chats(db=db, user_id=current_user.id)
+    return user_chats
+
+
+@router.get("/messages/", response_model=List[schemas.Message])
+async def get_chat_messages(
+    current_user: Annotated[schemas.User, Depends(get_current_user)],
+    chat_id: int,
+    db=Depends(get_db),
+):
+    user_chat_ids = [chat.id for chat in current_user.chats]
+
+    if chat_id in user_chat_ids:
+        chat = crud.get_object(db=db, model=models.Chat, id=chat_id)
+        return chat.messages
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 
 @router.get("/pm/{target_user_id}")
@@ -30,16 +65,6 @@ async def privet_message(request: Request, target_user_id: int, db=Depends(get_d
             "target_user": {"id": target_user_id, "username": target_user.username},
         },
     )
-
-
-@router.get("/messages/", response_model=List[schemas.Message])
-async def get_chat_messages(
-    current_user: Annotated[schemas.User, Depends(get_current_user)],
-    chat_id: int,
-    db=Depends(get_db),
-):
-    chat = crud.get_object(db=db, model=models.Chat, id=chat_id)
-    return chat.messages
 
 
 @router.websocket("/ws/{current_user_id}/{target_user_id}")

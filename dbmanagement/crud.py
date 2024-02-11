@@ -82,7 +82,7 @@ def create_chat(db: Session, users_id: List[int]):
     return chat
 
 
-def get_user_chats(db: Session, user_id: int) -> List[schemas.UserChat]:
+def get_user_chats(db: Session, user_id: int) -> List[schemas.ChatRoom]:
     chats = (
         db.query(models.Chat)
         .filter(models.Chat.users.any(models.User.id.in_([user_id])))
@@ -96,8 +96,8 @@ def get_user_chats(db: Session, user_id: int) -> List[schemas.UserChat]:
             if user.id != user_id:
                 target_user_id = user.id
                 target_username = user.username
-        chat_obj = schemas.UserChat(
-            current_user_id=user_id,
+        chat_obj = schemas.ChatRoom(
+            id=chat.id,
             target_user_id=target_user_id,
             target_username=target_username,
         )

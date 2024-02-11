@@ -32,7 +32,7 @@ class Message(MessageBase):
     chat_id: int
 
 
-class UserChat(BaseModel):
-    current_user_id: int
+class ChatRoom(BaseModel):
+    id: int
     target_user_id: int
     target_username: str

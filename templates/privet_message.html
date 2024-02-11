@@ -44,7 +44,7 @@
         var webSocketProtocol = "ws"
     }
 
-    var ws = new WebSocket(`${webSocketProtocol}://${host}/ws/${userId}/${targetUserId}`);
+    var ws = new WebSocket(`${webSocketProtocol}://${host}/chats/ws/${userId}/${targetUserId}`);
 
     ws.onmessage = function (event) {
         console.log(event.data)

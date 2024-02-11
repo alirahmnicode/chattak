@@ -12,7 +12,7 @@ from dependencies.dependencies import get_db
 app = FastAPI()
 
 app.include_router(users.router, prefix="/users", tags=["users"])
-app.include_router(chat.router, tags=["chat"])
+app.include_router(chat.router, prefix="/chats", tags=["chat"])
 app.include_router(auth.router, prefix="/auth", tags=["test"])
 
 templates = Jinja2Templates(directory="templates")
@@ -43,9 +43,8 @@ async def message(request: Request, db: Session = Depends(get_db)):
     token = request.cookies.get("access_token").split(" ")[1]
     user = await get_current_user(token=token, db=db)
     user_contacts = crud.get_user_contacts(db=db, user_id=user.id)
-    user_chats = crud.get_user_chats(db=db, user_id=user.id)
     return templates.TemplateResponse(
         request=request,
         name="message.html",
-        context={"user": user, "contacts": user_contacts, "user_chats": user_chats},
+        context={"user": user, "contacts": user_contacts},
     )

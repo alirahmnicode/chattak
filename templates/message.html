@@ -5,24 +5,10 @@
 hi {{user.username}}
 <hr>
 <div>
-    <p>your chats:</p>
-    <div>
-
-        {% for chat in user_chats %}
-        <div>
-            <div>{{chat.target_username}} {{chat.target_user_id}} <a href="/pm/{{chat.target_user_id}}">message</a>
-            </div>
-        </div>
-        {% endfor %}
-
-    </div>
-</div>
-<hr>
-<div>
     <div>contacts</div>
 
     {% for contact in contacts %}
-    <div>{{contact.username}} {{contact.id}} <a href="/pm/{{contact.id}}">message</a></div>
+    <div>{{contact.username}} {{contact.id}} <a href="chats/pm/{{contact.id}}">message</a></div>
     {% endfor %}
 
     add
