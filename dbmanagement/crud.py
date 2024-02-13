@@ -1,4 +1,5 @@
 from typing import List
+from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 from fastapi.exceptions import RequestValidationError
 
@@ -30,7 +31,7 @@ def create_user_contact(db: Session, owner_id, contact_id) -> schemas.Contact:
 
     if target_user is None:
         raise RequestValidationError("Cannot find a user with the id!")
-    
+
     user_contact = get_object(
         db=db, model=models.Contact, owner_id=owner_id, target_user_id=contact_id
     )
@@ -63,13 +64,18 @@ def save_message(db: Session, message: schemas.Message) -> schemas.Message:
 
 
 def create_chat(db: Session, users_id: List[int]):
-    chat = (
-        db.query(models.Chat)
-        .filter(models.Chat.users.any(models.User.id.in_(users_id)))
-        .first()
-    )
+    dont_exist = False
 
-    if chat is None:
+    for id in users_id:
+        chat = (
+            db.query(models.Chat)
+            .filter(models.Chat.users.any(models.User.id.in_([id])))
+            .first()
+        )
+        if chat is None:
+            dont_exist = True
+
+    if dont_exist is None:
         chat = models.Chat()
 
         for user_id in users_id:
