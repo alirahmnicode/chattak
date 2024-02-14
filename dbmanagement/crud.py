@@ -41,7 +41,7 @@ def create_user_contact(db: Session, owner_id, contact_id) -> schemas.Contact:
         db.add(new_contact)
         db.commit()
         db.refresh(new_contact)
-        contact = get_contact_info(db=db, contact_id=new_contact.id)
+        contact = get_contact_info(db=db, contact_id=contact_id)
         return contact
     else:
         raise RequestValidationError("The contact is already exist!")
