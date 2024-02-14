@@ -75,9 +75,8 @@ def create_chat(db: Session, users_id: List[int]):
         if chat is None:
             dont_exist = True
 
-    if dont_exist is None:
+    if dont_exist:
         chat = models.Chat()
-
         for user_id in users_id:
             user = get_object(db=db, model=models.User, id=user_id)
             chat.users.append(user)

@@ -1,11 +1,13 @@
 from __future__ import annotations
 from typing import List
 
+
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, Table
 from sqlalchemy.orm import relationship, Mapped
 from sqlalchemy.sql import func
 
 from .database import Base
+from utilities.custome_time import get_time
 
 
 chat_users = Table(
@@ -22,8 +24,8 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     username = Column(String, index=True, unique=True)
     password = Column(String)
-    last_online = Column(DateTime, nullable=True)
-    join_date = Column(DateTime(timezone=True), server_default=func.now())
+    last_online = Column(DateTime, default=get_time)
+    join_date = Column(DateTime, default=get_time)
 
     messages = relationship("Message", back_populates="owner")
     chats: Mapped[List[Chat]] = relationship(
@@ -48,7 +50,7 @@ class Message(Base):
     id = Column(Integer, primary_key=True)
     text = Column(String)
     is_seen = Column(Boolean, default=False)
-    date_send = Column(DateTime(timezone=True), server_default=func.now())
+    date_send = Column(DateTime, default=get_time)
     sender_id = Column(Integer, ForeignKey("users.id"))
     chat_id = Column(Integer, ForeignKey("chats.id"))
 

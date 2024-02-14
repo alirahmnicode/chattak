@@ -85,7 +85,7 @@ async def privet_message_websocket(
             chat_obj = crud.create_chat(
                 db=db, users_id=[current_user_id, target_user_id]
             )
-
+            
             message = schemas.Message(
                 text=data,
                 is_seen=False,
