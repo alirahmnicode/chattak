@@ -66,43 +66,7 @@ async def privet_message(request: Request, target_user_id: int, db=Depends(get_d
     )
 
 
-@router.websocket("/{current_user_id}/{target_user_id}")
-async def privet_message_websocket(
-    websocket: WebSocket, current_user_id: int, target_user_id: int, db=Depends(get_db)
-):
-    """
-    The client send message and the target user recieve the message.
-    """
-    user = crud.get_object(db=db, model=models.User, id=current_user_id)
-
-    await manager.connect(websocket=websocket, user_id=current_user_id)
-
-    try:
-        while True:
-            data = await websocket.receive_text()
-            # create chat object for user and target user
-            chat_obj = crud.create_chat(
-                db=db, users_id=[current_user_id, target_user_id]
-            )
-
-            message = schemas.Message(
-                text=data,
-                is_seen=False,
-                date_send=datetime.utcnow(),
-                sender_id=user.id,
-                chat_id=chat_obj.id,
-            )
-            crud.save_message(db=db, message=message)
-
-            is_target_user_is_online = manager.is_user_online(user_id=target_user_id)
-            if is_target_user_is_online:
-                await manager.send_personal_message(data, target_user_id)
-
-    except WebSocketDisconnect:
-        manager.disconnect(user.id)
-
-
-@router.websocket("/check_connection/{current_user_id}/{target_user_id}")
+@router.websocket("/server/check_connection/{current_user_id}/{target_user_id}")
 async def is_user_online(
     websocket: WebSocket, current_user_id: int, target_user_id: int
 ):
@@ -115,3 +79,41 @@ async def is_user_online(
     except WebSocketDisconnect:
         if is_online:
             await manager.send_connection_info(f"False", target_user_id)
+
+
+@router.websocket("/server/connect/{user_id}")
+async def privet_json_websocket(websocket: WebSocket, user_id: int, db=Depends(get_db)):
+    """
+    The client send message and the target user receive the message.
+    message, receiver_id
+    """
+
+    await manager.connect(websocket=websocket, user_id=user_id)
+
+    try:
+        while True:
+            data = await websocket.receive_json()
+            print(data)
+            # create chat object for user and target user
+            message_text = data["message"]
+            receiver_id = int(data["receiver_id"])
+            sender_id = int(data["sender_id"])
+            chat_obj = crud.create_chat(db=db, users_id=[user_id, receiver_id])
+
+            message = schemas.Message(
+                text=message_text,
+                is_seen=False,
+                date_send=datetime.utcnow(),
+                sender_id=sender_id,
+                chat_id=chat_obj.id,
+            )
+            crud.save_message(db=db, message=message)
+
+            is_target_user_is_online = manager.is_user_online(user_id=receiver_id)
+            if is_target_user_is_online:
+                await manager.send_personal_message(
+                    message.text, receiver_id, sender_id
+                )
+
+    except WebSocketDisconnect:
+        manager.disconnect(user_id)

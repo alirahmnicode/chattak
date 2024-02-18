@@ -1,3 +1,4 @@
+import json
 from fastapi import WebSocket
 
 
@@ -21,11 +22,12 @@ class ConnectionManager:
     def disconnect(self, user_id: int):
         del self.active_connections[user_id]
 
-    async def send_personal_message(self, message: str, target_user_id: int):
+    async def send_personal_message(self, message: str, target_user_id: int, user_id: int):
         websocket: WebSocket = self.active_connections.get(target_user_id).get(
             "message_socket"
         )
-        await websocket.send_text(message)
+        j_message = json.dumps({"message": message, "receiver_id": target_user_id, "sender_id": user_id})
+        await websocket.send_json(j_message)
 
     async def send_connection_info(self, message: str, target_user_id: int) -> None:
         websocket: WebSocket = self.active_connections.get(target_user_id).get(

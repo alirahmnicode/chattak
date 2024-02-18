@@ -47,40 +47,43 @@
     var webSocketProtocol = "ws";
   }
 
-
   var ws = new WebSocket(
-    `${webSocketProtocol}://${host}/chats/${userId}/${targetUserId}`
+    `${webSocketProtocol}://${host}/chats/server/connect/${userId}`
   );
 
   var user_online = new WebSocket(
-    `${webSocketProtocol}://${host}/chats/check_connection/${userId}/${targetUserId}`
+    `${webSocketProtocol}://${host}/chats/server/check_connection/${userId}/${targetUserId}`
   );
 
-  
   user_online.onmessage = function (event) {
-    console.log(event.data)
+    console.log(event.data);
   };
 
-
-  
   ws.onmessage = function (event) {
-    
     var cardBody = document.getElementsByClassName("card-body")[0];
+    message_obj = JSON.parse(JSON.parse(event.data))
+    console.log(event)
     var message = `<div class="d-flex flex-row justify-content-start mb-4">
                         <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava1-bg.webp"
                             alt="avatar 1" style="width: 45px; height: 100%;">
                         <div class="p-3 ms-3" style="max-width: 369px; border-radius: 15px; background-color: rgba(57, 192, 237,.2);">
-                            <p class="small mb-0">${event.data}</p>
+                            <p class="small mb-0">${message_obj.message}</p>
                         </div>
                     </div>`;
     let newElement = document.createElement("div");
     newElement.innerHTML = message;
     cardBody.appendChild(newElement);
   };
+
   function sendMessage(event) {
     var input = document.getElementById("messageText");
     var cardBody = document.getElementsByClassName("card-body")[0];
-    ws.send(input.value);
+    var json_message = JSON.stringify({
+      message: input.value,
+      sender_id: userId,
+      receiver_id: targetUserId,
+    });
+    ws.send(json_message);
     let selfMessage = `<div class="d-flex flex-row justify-content-end mb-4">
             <div class="p-3 me-3 border" style="max-width: 369px; border-radius: 15px; background-color: #fbfbfb;">
                 <p class="small mb-0">${input.value}</p>
@@ -94,6 +97,5 @@
     input.value = "";
     event.preventDefault();
   }
-
 </script>
 {% endblock content %}
