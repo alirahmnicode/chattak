@@ -1,17 +1,48 @@
-{% extends 'base.html' %}
-
-
-{% block content %}
-hi {{user.username}}
-<hr>
+{% extends 'base.html' %} {% block content %}
+<div class="card-body"></div>
+<p class="mb-0 fw-bold" id="user" data-userID="{{user.id}}">
+  hi {{user.username}}
+</p>
+<hr />
 <div>
-    <div>contacts</div>
+  <div>contacts</div>
 
-    {% for contact in contacts %}
-    <div>{{contact.username}} {{contact.id}} <a href="chats/pm/{{contact.id}}">message</a></div>
-    {% endfor %}
-
-    add
+  {% for contact in contacts %}
+  <div>
+    {{contact.username}} {{contact.id}}
+    <a href="chats/pm/{{contact.id}}">message</a>
+  </div>
+  {% endfor %} add
+  <hr />
 </div>
+<script>
+  var host = window.location.host;
+  var userId = document.getElementById("user").dataset.userid;
+  var notification = new WebSocket(
+    `ws://${host}/chats/server/notification/${userId}`
+  );
 
+  notification.onmessage = function (event) {
+    message_obj = JSON.parse(JSON.parse(event.data));
+    var message = `<div
+                        class="notif"
+                        style="
+                        padding: 10px;
+                        position: fixed;
+                        top: 0;
+                        transition: cubic-bezier(0.075, 0.82, 0.165, 1);
+                        background-color: aliceblue;
+                        border-radius: 10px;
+                        font-size: 30px;
+                        "
+                    >
+                    <div>${message_obj.sender_username}</div>
+                    <div>${message_obj.message}</div>
+  </div>`;
+    var cardBody = document.getElementsByClassName("card-body")[0];
+    let newElement = document.createElement("div");
+    newElement.innerHTML = message;
+    cardBody.appendChild(newElement);
+  };
+</script>
 {% endblock content %}

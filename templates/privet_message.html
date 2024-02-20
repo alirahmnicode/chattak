@@ -46,9 +46,12 @@
   if (protocol == "http:") {
     var webSocketProtocol = "ws";
   }
+  var notification = new WebSocket(
+    `${webSocketProtocol}://${host}/chats/server/notification/${userId}`
+  );
 
   var ws = new WebSocket(
-    `${webSocketProtocol}://${host}/chats/server/connect/${userId}`
+    `${webSocketProtocol}://${host}/chats/server/connect/${userId}/${targetUserId}`
   );
 
   var user_online = new WebSocket(
@@ -61,8 +64,7 @@
 
   ws.onmessage = function (event) {
     var cardBody = document.getElementsByClassName("card-body")[0];
-    message_obj = JSON.parse(JSON.parse(event.data))
-    console.log(event)
+    message_obj = JSON.parse(JSON.parse(event.data));
     var message = `<div class="d-flex flex-row justify-content-start mb-4">
                         <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava1-bg.webp"
                             alt="avatar 1" style="width: 45px; height: 100%;">

@@ -31,6 +31,18 @@ def get_user_chats(
     return user_chats
 
 
+@router.get("/user/{target_user_id}", response_model=schemas.ChatRoom)
+def get_user_chat(
+    current_user: Annotated[schemas.User, Depends(get_current_user)],
+    target_user_id: int,
+    db=Depends(get_db),
+):
+    chat_room = crud.get_user_chat(
+        db=db, user_id=current_user.id, target_user_id=target_user_id
+    )
+    return chat_room
+
+
 @router.get("/messages/", response_model=List[schemas.Message])
 async def get_chat_messages(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
@@ -81,19 +93,23 @@ async def is_user_online(
             await manager.send_connection_info(f"False", target_user_id)
 
 
-@router.websocket("/server/connect/{user_id}")
-async def privet_json_websocket(websocket: WebSocket, user_id: int, db=Depends(get_db)):
+@router.websocket("/server/connect/{user_id}/{target_user_id}")
+async def chat_websocket(
+    websocket: WebSocket, user_id: int, target_user_id: int, db=Depends(get_db)
+):
     """
     The client send message and the target user receive the message.
     message, receiver_id
     """
 
-    await manager.connect(websocket=websocket, user_id=user_id)
+    await manager.set_chat_socket(
+        websocket=websocket, user_id=user_id, target_user_id=target_user_id
+    )
 
     try:
         while True:
+            sender_user = crud.get_object(db=db, model=models.User, id=user_id)
             data = await websocket.receive_json()
-            print(data)
             # create chat object for user and target user
             message_text = data["message"]
             receiver_id = int(data["receiver_id"])
@@ -109,11 +125,33 @@ async def privet_json_websocket(websocket: WebSocket, user_id: int, db=Depends(g
             )
             crud.save_message(db=db, message=message)
 
-            is_target_user_is_online = manager.is_user_online(user_id=receiver_id)
-            if is_target_user_is_online:
-                await manager.send_personal_message(
-                    message.text, receiver_id, sender_id
+            user_notification_socket = manager.user_has_notification_socket(
+                target_user_id=target_user_id
+            )
+            user_chat_socket = manager.has_user_chat_socket(
+                user_id=user_id, target_user_id=target_user_id
+            )
+
+            if user_chat_socket:
+                await manager.send_personal_message(message_text, receiver_id, user_id)
+            elif user_notification_socket:
+                await manager.send_notification(
+                    text=message_text,
+                    receiver_id=receiver_id,
+                    sender_id=sender_id,
+                    sender_username=sender_user.username,
                 )
 
     except WebSocketDisconnect:
         manager.disconnect(user_id)
+
+
+@router.websocket("/server/notification/{user_id}")
+async def notification_socket(websocket: WebSocket, user_id: int):
+    await manager.set_notification_socket(websocket=websocket, user_id=user_id)
+
+    try:
+        while True:
+            await websocket.receive_text()
+    except ConnectionError:
+        pass

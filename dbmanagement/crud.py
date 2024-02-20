@@ -1,5 +1,4 @@
 from typing import List
-from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 from fastapi.exceptions import RequestValidationError
 
@@ -109,6 +108,21 @@ def get_user_chats(db: Session, user_id: int) -> List[schemas.ChatRoom]:
         chat_list.append(chat_obj)
 
     return chat_list
+
+
+def get_user_chat(db: Session, user_id, target_user_id):
+    chat = (
+        db.query(models.Chat)
+        .filter(models.Chat.users.any(models.User.id.in_([user_id, target_user_id])))
+        .first()
+    )
+    target_username = get_object(db=db, model=models.User, id=target_user_id).username
+    chat_obj = schemas.ChatRoom(
+        id=chat.id,
+        target_user_id=target_user_id,
+        target_username=target_username,
+    )
+    return chat_obj
 
 
 def get_chat_by_id(db: Session, chat_id: int):
