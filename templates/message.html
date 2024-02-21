@@ -18,8 +18,13 @@
 <script>
   var host = window.location.host;
   var userId = document.getElementById("user").dataset.userid;
+  var protocol = window.location.protocol;
+  var webSocketProtocol = "wss";
+  if (protocol == "http:") {
+    var webSocketProtocol = "ws";
+  }
   var notification = new WebSocket(
-    `ws://${host}/chats/server/notification/${userId}`
+    `${webSocketProtocol}://${host}/chats/server/notification/${userId}`
   );
 
   notification.onmessage = function (event) {
