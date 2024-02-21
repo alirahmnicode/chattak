@@ -90,7 +90,7 @@ async def is_user_online(
             data = await websocket.receive_text()
     except WebSocketDisconnect:
         if is_online:
-            await manager.send_connection_info(f"False", target_user_id)
+            await manager.send_connection_info("False", target_user_id)
 
 
 @router.websocket("/server/connect/{user_id}/{target_user_id}")
@@ -105,6 +105,7 @@ async def chat_websocket(
     await manager.set_chat_socket(
         websocket=websocket, user_id=user_id, target_user_id=target_user_id
     )
+    await manager.send_connection_info("True", target_user_id)
 
     try:
         while True:
@@ -143,7 +144,7 @@ async def chat_websocket(
                 )
 
     except WebSocketDisconnect:
-        manager.disconnect(user_id)
+        manager.disconnect("chat", user_id)
 
 
 @router.websocket("/server/notification/{user_id}")
@@ -153,5 +154,5 @@ async def notification_socket(websocket: WebSocket, user_id: int):
     try:
         while True:
             await websocket.receive_text()
-    except ConnectionError:
-        pass
+    except WebSocketDisconnect:
+        manager.disconnect("notification", user_id)

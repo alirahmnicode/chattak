@@ -47,8 +47,13 @@ class ConnectionManager:
     def user_has_notification_socket(self, target_user_id: int):
         return self.active_connections.get(target_user_id, False) and True
 
-    def disconnect(self, user_id: int):
-        del self.active_connections[user_id]
+    def disconnect(self, socket_type: str, user_id: int):
+        socket_obj = self.active_connections[user_id]
+
+        if socket_type == "chat":
+            socket_obj["chat_socket"] = None
+        elif socket_type == "notification":
+            socket_obj["notification"] = None
 
     async def send_personal_message(
         self, message: str, target_user_id: int, user_id: int
@@ -62,10 +67,12 @@ class ConnectionManager:
         await websocket.send_json(json_message)
 
     async def send_connection_info(self, message: str, target_user_id: int) -> None:
-        websocket: WebSocket = self.active_connections.get(target_user_id).get(
-            "connection_socket"
-        )
-        await websocket.send_text(message)
+        socket_obj = self.active_connections.get(target_user_id)
+
+        if socket_obj:
+            websocket: WebSocket = socket_obj.get("connection_socket")
+            if websocket:
+                await websocket.send_text(message)
 
     def get_user_socket_object(self, notification_socket: WebSocket):
         return {
