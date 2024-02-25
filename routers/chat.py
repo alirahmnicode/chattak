@@ -119,13 +119,12 @@ async def chat_websocket(
             chat_obj = crud.create_chat(
                 db=db, user_id=user_id, target_user_id=target_user_id
             )
-
             message = schemas.Message(
                 text=message_text,
                 is_seen=False,
                 date_send=datetime.utcnow(),
                 sender_id=sender_id,
-                chat_id=chat_obj.id,
+                chat_id=chat_obj,
             )
             crud.save_message(db=db, message=message)
 

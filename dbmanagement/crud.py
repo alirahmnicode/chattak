@@ -62,7 +62,7 @@ def save_message(db: Session, message: schemas.Message) -> schemas.Message:
     return new_message
 
 
-def create_chat(db: Session, user_id: int, target_user_id: int):
+def create_chat(db: Session, user_id: int, target_user_id: int) -> int:
     user = get_object(db=db, model=models.User, id=user_id)
     target_user = get_object(db=db, model=models.User, id=target_user_id)
 
@@ -80,7 +80,7 @@ def create_chat(db: Session, user_id: int, target_user_id: int):
         db.add(chat)
         db.commit()
         db.refresh(chat)
-        return chat
+        return chat.id
 
 
 def get_user_chats(db: Session, user_id: int) -> List[schemas.ChatRoom]:
