@@ -115,7 +115,10 @@ async def chat_websocket(
             message_text = data["message"]
             receiver_id = int(data["receiver_id"])
             sender_id = int(data["sender_id"])
-            chat_obj = crud.create_chat(db=db, users_id=[user_id, receiver_id])
+
+            chat_obj = crud.create_chat(
+                db=db, user_id=user_id, target_user_id=target_user_id
+            )
 
             message = schemas.Message(
                 text=message_text,

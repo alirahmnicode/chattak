@@ -40,15 +40,17 @@ class ConnectionManager:
         return self.active_connections.get(user_id, False) and True
 
     def has_user_chat_socket(self, user_id: int, target_user_id: int) -> bool:
-        chat_socket = self.active_connections.get(target_user_id).get("chat_socket")
-        if chat_socket:
-            return user_id in chat_socket
+        socket_obj = self.active_connections.get(target_user_id)
+        if socket_obj:
+            chat_socket = socket_obj.get("chat_socket")
+            if chat_socket:
+                return user_id in chat_socket
 
     def user_has_notification_socket(self, target_user_id: int):
         return self.active_connections.get(target_user_id, False) and True
 
     def disconnect(self, socket_type: str, user_id: int):
-        socket_obj = self.active_connections[user_id]
+        socket_obj = self.active_connections.get(user_id)
 
         if socket_type == "chat":
             socket_obj["chat_socket"] = None

@@ -62,28 +62,25 @@ def save_message(db: Session, message: schemas.Message) -> schemas.Message:
     return new_message
 
 
-def create_chat(db: Session, users_id: List[int]):
-    dont_exist = False
+def create_chat(db: Session, user_id: int, target_user_id: int):
+    user = get_object(db=db, model=models.User, id=user_id)
+    target_user = get_object(db=db, model=models.User, id=target_user_id)
 
-    for id in users_id:
-        chat = (
-            db.query(models.Chat)
-            .filter(models.Chat.users.any(models.User.id.in_([id])))
-            .first()
-        )
-        if chat is None:
-            dont_exist = True
+    user_chat_ids = [chat.id for chat in user.chats]
+    target_user_chat_ids = [chat.id for chat in target_user.chats]
 
-    if dont_exist:
+    shared_chat = list(set(user_chat_ids).intersection(target_user_chat_ids))
+
+    if shared_chat:
+        return shared_chat[0]
+    else:
         chat = models.Chat()
-        for user_id in users_id:
-            user = get_object(db=db, model=models.User, id=user_id)
-            chat.users.append(user)
-
+        chat.users.append(user)
+        chat.users.append(target_user)
         db.add(chat)
         db.commit()
         db.refresh(chat)
-    return chat
+        return chat
 
 
 def get_user_chats(db: Session, user_id: int) -> List[schemas.ChatRoom]:
