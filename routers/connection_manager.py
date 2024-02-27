@@ -22,13 +22,19 @@ class ConnectionManager:
         self.active_connections.get(user_id)["connection_socket"] = websocket
 
     async def send_notification(
-        self, text: str, receiver_id: int, sender_id: int, sender_username: str
+        self,
+        text: str,
+        receiver_id: int,
+        sender_id: int,
+        sender_username: str,
+        chat_id: int,
     ):
         user_sockets = self.active_connections.get(receiver_id)
         if user_sockets:
             json_message = json.dumps(
                 {
                     "message": text,
+                    "chat_id": chat_id,
                     "sender_id": sender_id,
                     "sender_username": sender_username,
                 }

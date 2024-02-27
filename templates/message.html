@@ -29,6 +29,7 @@
 
   notification.onmessage = function (event) {
     message_obj = JSON.parse(JSON.parse(event.data));
+    console.log(message_obj)
     var message = `<div
                         class="notif"
                         style="

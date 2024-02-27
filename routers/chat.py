@@ -116,7 +116,7 @@ async def chat_websocket(
             receiver_id = int(data["receiver_id"])
             sender_id = int(data["sender_id"])
 
-            chat_obj = crud.create_chat(
+            chat_id = crud.create_chat(
                 db=db, user_id=user_id, target_user_id=target_user_id
             )
             message = schemas.Message(
@@ -124,7 +124,7 @@ async def chat_websocket(
                 is_seen=False,
                 date_send=datetime.utcnow(),
                 sender_id=sender_id,
-                chat_id=chat_obj,
+                chat_id=chat_id,
             )
             crud.save_message(db=db, message=message)
 
@@ -140,6 +140,7 @@ async def chat_websocket(
             elif user_notification_socket:
                 await manager.send_notification(
                     text=message_text,
+                    chat_id=chat_id,
                     receiver_id=receiver_id,
                     sender_id=sender_id,
                     sender_username=sender_user.username,
