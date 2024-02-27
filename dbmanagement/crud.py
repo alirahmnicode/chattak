@@ -145,3 +145,16 @@ def search_user(db: Session, username: str) -> schemas.User:
 
 def get_all_user(db: Session):
     return db.query(models.User).all()
+
+
+def seen_messages(db: Session, chat_id: int, user_id: int) -> bool:
+    chat = get_object(db=db, model=models.Chat, id=chat_id)
+
+    if chat:
+        for message in chat.messages:
+            if message.sender_id != user_id and message.is_seen is False:
+                message.is_seen = True
+                db.commit()
+        return True
+    else:
+        return False

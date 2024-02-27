@@ -62,6 +62,16 @@ async def get_chat_messages(
         )
 
 
+@router.post("/messages/seen/", response_model=bool)
+async def seen_chat_messages(
+    current_user: Annotated[schemas.User, Depends(get_current_user)],
+    chat_id: int,
+    db=Depends(get_db),
+):
+    is_seen = crud.seen_messages(db=db, chat_id=chat_id, user_id=current_user.id)
+    return is_seen
+
+
 @router.get("/pm/{target_user_id}")
 async def privet_message(request: Request, target_user_id: int, db=Depends(get_db)):
     token = request.cookies.get("access_token").split(" ")[1]
