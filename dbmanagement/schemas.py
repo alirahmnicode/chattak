@@ -36,3 +36,4 @@ class ChatRoom(BaseModel):
     id: int
     target_user_id: int
     target_username: str
+    last_message: str

@@ -97,10 +97,15 @@ def get_user_chats(db: Session, user_id: int) -> List[schemas.ChatRoom]:
             if user.id != user_id:
                 target_user_id = user.id
                 target_username = user.username
+                
+        # get last chat's message
+        last_message = chat.messages[-1].text if chat.messages else ""
+
         chat_obj = schemas.ChatRoom(
             id=chat.id,
             target_user_id=target_user_id,
             target_username=target_username,
+            last_message=last_message,
         )
         chat_list.append(chat_obj)
 
@@ -118,6 +123,7 @@ def get_user_chat(db: Session, user_id, target_user_id):
         id=chat.id,
         target_user_id=target_user_id,
         target_username=target_username,
+        last_message="",
     )
     return chat_obj
 
